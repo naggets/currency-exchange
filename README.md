@@ -2,7 +2,6 @@
 
 Multi-currency converter with custom exchange rates support. Perfect for tracking conversions through multiple currencies with bank-specific rates.
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://yourusername.github.io/currency-calculator/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/yourusername/currency-calculator/releases)
 
@@ -18,11 +17,7 @@ Multi-currency converter with custom exchange rates support. Perfect for trackin
 
 ## 🚀 Demo
 
-Try it live: [https://yourusername.github.io/currency-calculator/](https://yourusername.github.io/currency-calculator/)
-
-## 📸 Screenshots
-
-![Currency Calculator Screenshot](docs/screenshot.png)
+Try it live: [https://naggets.github.io/currency-exchange](https://naggets.github.io/currency-exchange)
 
 ## 🎯 Use Case
 
@@ -38,38 +33,6 @@ Perfect for scenarios where you need to track currency conversions through multi
 - **CSS3** - Modern styling with CSS Grid/Flexbox
 - **Vanilla JavaScript** - No dependencies
 - **LocalStorage API** - Client-side data persistence
-
-## 📦 Installation
-
-### Option 1: Use GitHub Pages (Recommended)
-
-1. Fork this repository
-2. Go to Settings → Pages
-3. Set Source to `main` branch, `/ (root)` folder
-4. Your site will be live at `https://yourusername.github.io/currency-calculator/`
-
-### Option 2: Clone and Run Locally
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/currency-calculator.git
-
-# Navigate to the project
-cd currency-calculator
-
-# Open in browser (or use any local server)
-open index.html
-# OR with Python
-python -m http.server 8000
-# OR with Node.js
-npx http-server
-```
-
-### Option 3: Download ZIP
-
-1. Click "Code" → "Download ZIP"
-2. Extract the files
-3. Open `index.html` in your browser
 
 ## 📱 Add to Home Screen (iOS/Android)
 
@@ -122,10 +85,6 @@ currency-calculator/
 └── LICENSE               # MIT License
 ```
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ### Development Guidelines
 
 1. **Code Style**: Follow existing code style
@@ -164,7 +123,7 @@ Have an idea? Open an issue with:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -194,7 +153,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-Project Link: [https://github.com/yourusername/currency-calculator](https://github.com/yourusername/currency-calculator)
+Project Link: [https://github.com/naggets/currency-exchange](https://github.com/naggets/currency-exchange)
 
 ---
 
