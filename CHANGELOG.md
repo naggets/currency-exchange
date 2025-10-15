@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-10-15
+
+### Fixed
+- Replace placeholder GitHub username with actual username in all links
+- Fix footer GitHub link in index.html
+- Fix documentation links in README.md
+- Fix setup guide links in SETUP_GUIDE.md
+
 ## [1.0.0] - 2025-10-15
 
 ### Added
@@ -26,4 +34,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT License
 
 [Unreleased]: https://github.com/naggets/currency-exchange/compare/v1.0.0...HEAD
+[1.0.1]: https://github.com/naggets/currency-exchange/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/naggets/currency-exchange/releases/tag/v1.0.0
