@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Multi-currency calculator with custom exchange rates">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Currency Calculator</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💱 Калькулятор валют</h1>
+            <p class="subtitle">Введите курсы и любую сумму — всё пересчитается автоматически</p>
+        </header>
+        
+        <section class="rates-section" aria-label="Exchange rates">
+            <div class="rates-header">
+                <h2>Курсы обмена</h2>
+                <button class="toggle-rates" onclick="toggleRates()" aria-label="Toggle rates visibility">Свернуть</button>
+            </div>
+            
+            <div id="rates-content">
+                <div class="rate-row">
+                    <div class="rate-label">🔴 RUB → KGS</div>
+                    <div class="rate-input-group">
+                        <span class="rate-input-label">📱 Курс продажи RUB (из банка)</span>
+                        <input 
+                            type="number" 
+                            class="rate-input" 
+                            id="rub-kgs-buy" 
+                            step="0.0001" 
+                            placeholder="0.9500"
+                            aria-label="RUB to KGS rate"
+                            inputmode="decimal">
+                    </div>
+                </div>
+                
+                <div class="rate-row">
+                    <div class="rate-label">🔴 KGS → USD</div>
+                    <div class="rate-input-group">
+                        <span class="rate-input-label">📱 Курс покупки USD (из банка)</span>
+                        <input 
+                            type="number" 
+                            class="rate-input" 
+                            id="usd-kgs-sell" 
+                            step="0.01" 
+                            placeholder="87.00"
+                            aria-label="KGS to USD rate"
+                            inputmode="decimal">
+                    </div>
+                </div>
+                
+                <div class="rate-row">
+                    <div class="rate-label">🔴 USD → JPY</div>
+                    <div class="rate-input-group">
+                        <span class="rate-input-label">📱 Курс конвертации USD в JPY</span>
+                        <div class="input-with-button">
+                            <input 
+                                type="number" 
+                                class="rate-input" 
+                                id="usd-jpy-buy" 
+                                step="0.01" 
+                                placeholder="148.50"
+                                aria-label="USD to JPY rate"
+                                inputmode="decimal">
+                            <button onclick="openVisaRates()" class="visa-button" aria-label="Check Visa rates">
+                                🌐 Visa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="save-indicator" id="save-indicator" role="status" aria-live="polite">✓ Курсы сохранены</div>
+            </div>
+        </section>
+        
+        <section class="amounts-section" aria-label="Currency amounts">
+            <h2>Суммы валют</h2>
+            
+            <div class="currency-row">
+                <label for="amount-rub" class="currency-label">🇷🇺 RUB</label>
+                <input 
+                    type="number" 
+                    class="currency-input" 
+                    id="amount-rub" 
+                    placeholder="0.00" 
+                    step="0.01"
+                    aria-label="Amount in Russian Rubles"
+                    inputmode="decimal">
+            </div>
+            
+            <div class="currency-row">
+                <label for="amount-kgs" class="currency-label">🇰🇬 KGS</label>
+                <input 
+                    type="number" 
+                    class="currency-input" 
+                    id="amount-kgs" 
+                    placeholder="0.00" 
+                    step="0.01"
+                    aria-label="Amount in Kyrgyzstani Som"
+                    inputmode="decimal">
+            </div>
+            
+            <div class="currency-row">
+                <label for="amount-usd" class="currency-label">🇺🇸 USD</label>
+                <input 
+                    type="number" 
+                    class="currency-input" 
+                    id="amount-usd" 
+                    placeholder="0.00" 
+                    step="0.01"
+                    aria-label="Amount in US Dollars"
+                    inputmode="decimal">
+            </div>
+            
+            <div class="currency-row">
+                <label for="amount-jpy" class="currency-label">🇯🇵 JPY</label>
+                <input 
+                    type="number" 
+                    class="currency-input" 
+                    id="amount-jpy" 
+                    placeholder="0.00" 
+                    step="0.01"
+                    aria-label="Amount in Japanese Yen"
+                    inputmode="decimal">
+            </div>
+        </section>
+        
+        <aside class="info-box">
+            <strong>📌 Как пользоваться:</strong><br>
+            1. Введите курсы покупки/продажи из вашего банка<br>
+            2. Введите сумму в ЛЮБОЙ валюте<br>
+            3. Остальные суммы пересчитаются автоматически<br>
+            4. Курсы сохраняются в браузере автоматически
+        </aside>
+        
+        <aside class="chain-info">
+            <strong>⚠️ Важно:</strong> При переводе RUB → USD происходит двойная конвертация (RUB → KGS → USD). Банк берет комиссию на каждом этапе через курсовую разницу.
+        </aside>
+
+        <footer class="app-footer">
+            <p>v1.0.0 | <a href="https://github.com/yourusername/currency-calculator" target="_blank" rel="noopener">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="scripts/calculator.js"></script>
+</body>
+</html>
