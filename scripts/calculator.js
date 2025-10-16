@@ -298,7 +298,7 @@ function initEventListeners() {
 }
 
 /**
- * Initialize the application
+ * Initialize the application1
  */
 function init() {
     try {
