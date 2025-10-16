@@ -30,11 +30,12 @@
                     <div class="rate-input-group">
                         <span class="rate-input-label">📱 Курс продажи RUB (из банка)</span>
                         <input 
-                            type="number" 
+                            type="text" 
                             class="rate-input" 
                             id="rub-kgs-buy" 
                             step="0.0001" 
                             placeholder="0.9500"
+                            pattern="[0-9]*[.,]?[0-9]*"
                             aria-label="RUB to KGS rate"
                             inputmode="decimal">
                     </div>
@@ -45,11 +46,12 @@
                     <div class="rate-input-group">
                         <span class="rate-input-label">📱 Курс покупки USD (из банка)</span>
                         <input 
-                            type="number" 
+                            type="text" 
                             class="rate-input" 
                             id="usd-kgs-sell" 
                             step="0.01" 
                             placeholder="87.00"
+                            pattern="[0-9]*[.,]?[0-9]*"
                             aria-label="KGS to USD rate"
                             inputmode="decimal">
                     </div>
@@ -61,11 +63,12 @@
                         <span class="rate-input-label">📱 Курс конвертации USD в JPY</span>
                         <div class="input-with-button">
                             <input 
-                                type="number" 
+                                type="text" 
                                 class="rate-input" 
                                 id="usd-jpy-buy" 
                                 step="0.01" 
                                 placeholder="148.50"
+                                pattern="[0-9]*[.,]?[0-9]*"
                                 aria-label="USD to JPY rate"
                                 inputmode="decimal">
                             <button onclick="openVisaRates()" class="visa-button" aria-label="Check Visa rates">
@@ -85,11 +88,12 @@
             <div class="currency-row">
                 <label for="amount-rub" class="currency-label">🇷🇺 RUB</label>
                 <input 
-                    type="number" 
+                    type="text" 
                     class="currency-input" 
                     id="amount-rub" 
                     placeholder="0.00" 
                     step="0.01"
+                    pattern="[0-9]*[.,]?[0-9]*"
                     aria-label="Amount in Russian Rubles"
                     inputmode="decimal">
             </div>
@@ -97,11 +101,12 @@
             <div class="currency-row">
                 <label for="amount-kgs" class="currency-label">🇰🇬 KGS</label>
                 <input 
-                    type="number" 
+                    type="text" 
                     class="currency-input" 
                     id="amount-kgs" 
                     placeholder="0.00" 
                     step="0.01"
+                    pattern="[0-9]*[.,]?[0-9]*"
                     aria-label="Amount in Kyrgyzstani Som"
                     inputmode="decimal">
             </div>
@@ -109,11 +114,12 @@
             <div class="currency-row">
                 <label for="amount-usd" class="currency-label">🇺🇸 USD</label>
                 <input 
-                    type="number" 
+                    type="text" 
                     class="currency-input" 
                     id="amount-usd" 
                     placeholder="0.00" 
                     step="0.01"
+                    pattern="[0-9]*[.,]?[0-9]*"
                     aria-label="Amount in US Dollars"
                     inputmode="decimal">
             </div>
@@ -121,11 +127,12 @@
             <div class="currency-row">
                 <label for="amount-jpy" class="currency-label">🇯🇵 JPY</label>
                 <input 
-                    type="number" 
+                    type="text" 
                     class="currency-input" 
                     id="amount-jpy" 
                     placeholder="0.00" 
                     step="0.01"
+                    pattern="[0-9]*[.,]?[0-9]*"
                     aria-label="Amount in Japanese Yen"
                     inputmode="decimal">
             </div>
