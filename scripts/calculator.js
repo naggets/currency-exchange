@@ -36,6 +36,29 @@ const DEFAULT_RATES = {
 };
 
 /**
+ * Normalize decimal input (replace comma with dot)
+ * @param {string} value - Input value
+ * @returns {string} Normalized value
+ */
+function normalizeDecimal(value) {
+    if (typeof value !== 'string') return value;
+    // Replace comma with dot for parseFloat
+    return value.replace(',', '.');
+}
+
+/**
+ * Parse number from input (supports both comma and dot)
+ * @param {string} value - Input value
+ * @returns {number} Parsed number
+ */
+function parseNumber(value) {
+    if (!value) return 0;
+    const normalized = normalizeDecimal(value);
+    const parsed = parseFloat(normalized);
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
  * Load saved rates from localStorage
  * @returns {Object} Rates object
  */
@@ -83,9 +106,9 @@ function showSaveIndicator() {
  */
 function getRates() {
     return {
-        rubKgsBuy: parseFloat(rateInputs.rubKgsBuy.value) || 0,
-        usdKgsSell: parseFloat(rateInputs.usdKgsSell.value) || 0,
-        usdJpyBuy: parseFloat(rateInputs.usdJpyBuy.value) || 0
+        rubKgsBuy: parseNumber(rateInputs.rubKgsBuy.value),
+        usdKgsSell: parseNumber(rateInputs.usdKgsSell.value),
+        usdJpyBuy: parseNumber(rateInputs.usdJpyBuy.value)
     };
 }
 
@@ -188,7 +211,7 @@ function updateAmounts(source, value) {
     if (isCalculating) return;
     isCalculating = true;
     
-    const amount = parseFloat(value) || 0;
+    const amount = parseNumber(value);
     
     if (amount === 0) {
         clearAllAmounts(source);
@@ -282,19 +305,48 @@ function recalculateAmounts() {
  * Initialize event listeners
  */
 function initEventListeners() {
-    // Rate inputs
+    // Rate inputs - normalize comma to dot on input
     Object.values(rateInputs).forEach(input => {
-        input.addEventListener('input', () => {
+        input.addEventListener('input', (e) => {
+            // Save original cursor position
+            const cursorPos = e.target.selectionStart;
+            const oldValue = e.target.value;
+            
+            // Normalize comma to dot
+            const newValue = normalizeDecimal(oldValue);
+            
+            // Update value if changed
+            if (newValue !== oldValue) {
+                e.target.value = newValue;
+                // Restore cursor position
+                e.target.setSelectionRange(cursorPos, cursorPos);
+            }
+            
             saveRates();
             recalculateAmounts();
         });
     });
 
-    // Amount inputs
-    amountInputs.rub.addEventListener('input', (e) => updateAmounts(e.target, e.target.value));
-    amountInputs.kgs.addEventListener('input', (e) => updateAmounts(e.target, e.target.value));
-    amountInputs.usd.addEventListener('input', (e) => updateAmounts(e.target, e.target.value));
-    amountInputs.jpy.addEventListener('input', (e) => updateAmounts(e.target, e.target.value));
+    // Amount inputs - normalize and calculate
+    Object.values(amountInputs).forEach(input => {
+        input.addEventListener('input', (e) => {
+            // Save original cursor position
+            const cursorPos = e.target.selectionStart;
+            const oldValue = e.target.value;
+            
+            // Normalize comma to dot
+            const newValue = normalizeDecimal(oldValue);
+            
+            // Update value if changed
+            if (newValue !== oldValue) {
+                e.target.value = newValue;
+                // Restore cursor position
+                e.target.setSelectionRange(cursorPos, cursorPos);
+            }
+            
+            updateAmounts(e.target, e.target.value);
+        });
+    });
 }
 
 /**
@@ -316,4 +368,3 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
-        

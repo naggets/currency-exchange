@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2025-10-16
+
+### Fixed
+- Support both comma and dot as decimal separator in input fields
+- Fix mobile keyboard decimal input for non-English locales
+- Automatically normalize comma to dot for correct calculations
+- Preserve cursor position when normalizing input
+
+### Changed
+- Change input type from `number` to `text` with pattern validation
+- Add `pattern="[0-9]*[.,]?[0-9]*"` for better mobile keyboard
+- Improve decimal input handling across different locales
+
 ## [1.0.1] - 2025-10-15
 
 ### Fixed

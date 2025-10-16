@@ -3,7 +3,7 @@
 Multi-currency converter with custom exchange rates support. Perfect for tracking conversions through multiple currencies with bank-specific rates.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.1-blue)](https://github.com/naggets/currency-exchange/releases)
+[![Version](https://img.shields.io/badge/version-1.0.2-blue)](https://github.com/naggets/currency-exchange/releases)
 
 ## ✨ Features
 

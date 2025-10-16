@@ -2,7 +2,7 @@
   "name": "Currency Calculator",
   "short_name": "CurrCalc",
   "description": "Multi-currency converter with custom exchange rates",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#667eea",
