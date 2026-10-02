@@ -1,160 +1,39 @@
 # 💱 Currency Calculator
 
-Multi-currency converter with custom exchange rates support. Perfect for tracking conversions through multiple currencies with bank-specific rates.
+A lightweight currency chain calculator with manually entered exchange rates and an optional ATM surcharge.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.2-blue)](https://github.com/naggets/currency-exchange/releases)
+[Open the calculator](https://naggets.github.io/currency-exchange/)
 
-## ✨ Features
+## Usage
 
-- 🔄 **Bidirectional Conversion** - Enter amount in any currency, all others calculate automatically
-- 💾 **Auto-Save** - Exchange rates saved locally in your browser
-- 📱 **Mobile Friendly** - Fully responsive design, works great on phones
-- 🌐 **Visa Integration** - Quick link to check official Visa exchange rates
-- 🎨 **Clean UI** - Modern, intuitive interface
-- ⚡ **Fast & Lightweight** - Pure HTML/CSS/JS, no frameworks needed
-- ♿ **Accessible** - WCAG compliant, keyboard navigation support
+- Edit any currency name in **Валюты и курсы**. Add or remove the last currency to build a chain of 2–10 currencies (four pairs means five currencies).
+- The **RUB → KGS → RSD → EUR** button sets up that chain and clears the rates. Enter your actual rates manually.
+- Every rate is quoted as **1 currency on the left = rate × currency on the right**. For example, if 1 EUR costs 117 RSD, the RSD → EUR rate is `0.008547008547` (1 / 117).
+- Enter an amount in any currency. Changing a rate preserves the last amount you entered and recalculates the rest. Calculations use full precision; displayed amounts have two decimal places.
+- Names, rates, and ATM settings are saved in this browser. Older RUB/KGS/USD/JPY settings migrate automatically, including the inverse KGS/USD quote.
+- All rates are manual. The Visa link is a reference link only.
 
-## 🚀 Demo
+## ATM commission
 
-Try it live: [https://naggets.github.io/currency-exchange](https://naggets.github.io/currency-exchange)
+Enable **Учитывать комиссию**, select the withdrawal currency and enter the percentage added on top of the cash amount.
 
-## 🎯 Use Case
+- **Наличные, которые хочу получить**: cash 100 + 2% fee = debit 102.
+- **Бюджет вместе с комиссией**: budget 102 / 1.02 = cash 100, fee 2.
 
-Perfect for scenarios where you need to track currency conversions through multiple steps:
-- RUB → KGS → USD → JPY
-- Custom bank exchange rates
-- Multi-hop currency transfers
-- International payment calculations
+The ATM result shows cash, fee, total debit, and the debit converted through the entire chain. The main amount fields remain conversions before the ATM fee. Reverse conversion uses the same rates, so separate buy/sell spreads must already be reflected in the manually entered rates.
 
-## 🛠️ Tech Stack
+## Development
 
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling with CSS Grid/Flexbox
-- **Vanilla JavaScript** - No dependencies
-- **LocalStorage API** - Client-side data persistence
+Plain HTML, CSS and JavaScript; no build or runtime dependencies. Serve this folder with any static web server, or open `index.html` locally.
 
-## 📱 Add to Home Screen (iOS/Android)
+Run calculation tests with Node.js:
 
-### iOS (Safari)
-1. Open the app in Safari
-2. Tap the Share button (square with arrow)
-3. Scroll down and tap "Add to Home Screen"
-4. Tap "Add"
-
-### Android (Chrome)
-1. Open the app in Chrome
-2. Tap the menu (three dots)
-3. Tap "Add to Home screen"
-4. Tap "Add"
-
-## 🔧 Usage
-
-### Setting Exchange Rates
-
-1. **RUB → KGS**: Enter the bank's **sell rate** for RUB
-2. **KGS → USD**: Enter the bank's **buy rate** for USD
-3. **USD → JPY**: Enter the conversion rate (check Visa for accuracy)
-
-Rates are automatically saved in your browser.
-
-### Converting Currencies
-
-Simply enter an amount in any currency field - all other currencies will calculate automatically!
-
-**Example:**
-- Enter `1000` in JPY field
-- Instantly see equivalent in RUB, KGS, and USD
-
-### Checking Visa Rates
-
-Click the "🌐 Visa" button next to USD → JPY field to open Visa's official exchange rate calculator.
-
-## 📁 Project Structure
-
-```
-currency-calculator/
-├── index.html              # Main HTML file
-├── styles/
-│   └── main.css           # Stylesheet
-├── scripts/
-│   └── calculator.js      # Application logic
-├── manifest.json          # PWA manifest
-├── .gitignore            # Git ignore rules
-├── README.md             # This file
-└── LICENSE               # MIT License
+```sh
+node --test tests/conversion.test.js
 ```
 
-### Development Guidelines
+GitHub Pages deploys from `main`. Pull requests validate HTML and run calculation tests.
 
-1. **Code Style**: Follow existing code style
-2. **Commits**: Use semantic commit messages
-   - `feat:` new features
-   - `fix:` bug fixes
-   - `docs:` documentation changes
-   - `style:` formatting, missing semicolons, etc.
-   - `refactor:` code restructuring
-   - `test:` adding tests
-   - `chore:` maintenance tasks
+## License
 
-### Steps to Contribute
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'feat: add some amazing feature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 🐛 Bug Reports
-
-Found a bug? Please open an issue with:
-- Clear description of the problem
-- Steps to reproduce
-- Expected vs actual behavior
-- Browser and OS information
-- Screenshots if applicable
-
-## 💡 Feature Requests
-
-Have an idea? Open an issue with:
-- Clear description of the feature
-- Use case explanation
-- Any relevant examples or mockups
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
-
-## 🙏 Acknowledgments
-
-- Exchange rates powered by user input
-- Visa rate reference: [Visa Exchange Rate Calculator](https://www.visa.com.sg/support/consumer/travel-support/exchange-rate-calculator.html)
-- Icons: Unicode emoji
-
-## 📊 Changelog
-
-### v1.0.0 (2025-10-15)
-- Initial release
-- Support for RUB, KGS, USD, JPY
-- Bidirectional conversion
-- LocalStorage persistence
-- Mobile-responsive design
-- Visa rate integration
-
-## 🔮 Roadmap
-
-- [ ] Add more currencies
-- [ ] Historical rate tracking
-- [ ] Export conversion history
-- [ ] Dark mode
-- [ ] Multi-language support
-- [ ] PWA offline support
-- [ ] Rate change notifications
-
-## 📞 Contact
-
-Project Link: [https://github.com/naggets/currency-exchange](https://github.com/naggets/currency-exchange)
-
----
-
-Made with ❤️ for easier currency conversions
+[MIT](license.md)

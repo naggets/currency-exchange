@@ -1,160 +1,42 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Multi-currency calculator with custom exchange rates">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Currency Calculator</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#667eea">
+<title>Калькулятор валют</title>
+<link rel="stylesheet" href="styles/main.css">
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>💱 Калькулятор валют</h1>
-            <p class="subtitle">Введите курсы и любую сумму — всё пересчитается автоматически</p>
-        </header>
-        
-        <section class="rates-section" aria-label="Exchange rates">
-            <div class="rates-header">
-                <h2>Курсы обмена</h2>
-                <button class="toggle-rates" onclick="toggleRates()" aria-label="Toggle rates visibility">Свернуть</button>
-            </div>
-            
-            <div id="rates-content">
-                <div class="rate-row">
-                    <div class="rate-label">🔴 RUB → KGS</div>
-                    <div class="rate-input-group">
-                        <span class="rate-input-label">📱 Курс продажи RUB (из банка)</span>
-                        <input 
-                            type="text" 
-                            class="rate-input" 
-                            id="rub-kgs-buy" 
-                            step="0.0001" 
-                            placeholder="0.9500"
-                            pattern="[0-9]*[.,]?[0-9]*"
-                            aria-label="RUB to KGS rate"
-                            inputmode="decimal">
-                    </div>
-                </div>
-                
-                <div class="rate-row">
-                    <div class="rate-label">🔴 KGS → USD</div>
-                    <div class="rate-input-group">
-                        <span class="rate-input-label">📱 Курс покупки USD (из банка)</span>
-                        <input 
-                            type="text" 
-                            class="rate-input" 
-                            id="usd-kgs-sell" 
-                            step="0.01" 
-                            placeholder="87.00"
-                            pattern="[0-9]*[.,]?[0-9]*"
-                            aria-label="KGS to USD rate"
-                            inputmode="decimal">
-                    </div>
-                </div>
-                
-                <div class="rate-row">
-                    <div class="rate-label">🔴 USD → JPY</div>
-                    <div class="rate-input-group">
-                        <span class="rate-input-label">📱 Курс конвертации USD в JPY</span>
-                        <div class="input-with-button">
-                            <input 
-                                type="text" 
-                                class="rate-input" 
-                                id="usd-jpy-buy" 
-                                step="0.01" 
-                                placeholder="148.50"
-                                pattern="[0-9]*[.,]?[0-9]*"
-                                aria-label="USD to JPY rate"
-                                inputmode="decimal">
-                            <button onclick="openVisaRates()" class="visa-button" aria-label="Check Visa rates">
-                                🌐 Visa
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="save-indicator" id="save-indicator" role="status" aria-live="polite">✓ Курсы сохранены</div>
-            </div>
-        </section>
-        
-        <section class="amounts-section" aria-label="Currency amounts">
-            <h2>Суммы валют</h2>
-            
-            <div class="currency-row">
-                <label for="amount-rub" class="currency-label">🇷🇺 RUB</label>
-                <input 
-                    type="text" 
-                    class="currency-input" 
-                    id="amount-rub" 
-                    placeholder="0.00" 
-                    step="0.01"
-                    pattern="[0-9]*[.,]?[0-9]*"
-                    aria-label="Amount in Russian Rubles"
-                    inputmode="decimal">
-            </div>
-            
-            <div class="currency-row">
-                <label for="amount-kgs" class="currency-label">🇰🇬 KGS</label>
-                <input 
-                    type="text" 
-                    class="currency-input" 
-                    id="amount-kgs" 
-                    placeholder="0.00" 
-                    step="0.01"
-                    pattern="[0-9]*[.,]?[0-9]*"
-                    aria-label="Amount in Kyrgyzstani Som"
-                    inputmode="decimal">
-            </div>
-            
-            <div class="currency-row">
-                <label for="amount-usd" class="currency-label">🇺🇸 USD</label>
-                <input 
-                    type="text" 
-                    class="currency-input" 
-                    id="amount-usd" 
-                    placeholder="0.00" 
-                    step="0.01"
-                    pattern="[0-9]*[.,]?[0-9]*"
-                    aria-label="Amount in US Dollars"
-                    inputmode="decimal">
-            </div>
-            
-            <div class="currency-row">
-                <label for="amount-jpy" class="currency-label">🇯🇵 JPY</label>
-                <input 
-                    type="text" 
-                    class="currency-input" 
-                    id="amount-jpy" 
-                    placeholder="0.00" 
-                    step="0.01"
-                    pattern="[0-9]*[.,]?[0-9]*"
-                    aria-label="Amount in Japanese Yen"
-                    inputmode="decimal">
-            </div>
-        </section>
-        
-        <aside class="info-box">
-            <strong>📌 Как пользоваться:</strong><br>
-            1. Введите курсы покупки/продажи из вашего банка<br>
-            2. Введите сумму в ЛЮБОЙ валюте<br>
-            3. Остальные суммы пересчитаются автоматически<br>
-            4. Курсы сохраняются в браузере автоматически
-        </aside>
-        
-        <aside class="chain-info">
-            <strong>⚠️ Важно:</strong> При переводе RUB → USD происходит двойная конвертация (RUB → KGS → USD). Банк берет комиссию на каждом этапе через курсовую разницу.
-        </aside>
-
-        <footer class="app-footer">
-            <p>v1.0.2 | <a href="https://github.com/naggets/currency-exchange" target="_blank" rel="noopener">GitHub</a></p>
-        </footer>
-    </div>
-
-    <script src="scripts/calculator.js"></script>
+<main class="container">
+<header><h1>💱 Калькулятор валют</h1><p class="subtitle">Ваши валюты, ваши курсы. Введите любую сумму — остальные пересчитаются.</p></header>
+<section class="rates-section" aria-labelledby="settings-title">
+<div class="rates-header"><h2 id="settings-title">Валюты и курсы</h2><button class="toggle-rates" id="toggle-rates" aria-expanded="true" aria-controls="rates-content">Свернуть</button></div>
+<div id="rates-content">
+<p class="subtitle">Названия можно менять. Каждый курс связывает две соседние валюты.</p>
+<div class="settings-actions"><button id="serbia-preset" class="secondary-button" aria-describedby="preset-help">RUB → KGS → RSD → EUR</button><button id="add-currency" class="secondary-button">+ Добавить валюту</button><button id="remove-currency" class="secondary-button">Убрать последнюю</button></div>
+<p id="preset-help" class="subtitle">Готовая цепочка заменит валюты и очистит курсы — задайте их заново.</p>
+<div id="currency-settings"></div><div id="rate-settings"></div>
+<a href="https://www.visa.com.sg/support/consumer/travel-support/exchange-rate-calculator.html" target="_blank" rel="noopener">🌐 Проверить курс Visa</a>
+</div>
+<div class="save-indicator" id="save-indicator" role="status" aria-live="polite"></div>
+</section>
+<section class="amounts-section" aria-labelledby="amounts-title"><h2 id="amounts-title">Суммы валют</h2><p id="calculation-error" class="error-message" role="status" aria-live="polite"></p><div id="currency-amounts"></div></section>
+<section class="rates-section atm-section" aria-labelledby="atm-title">
+<h2 id="atm-title">🏧 Снятие в банкомате</h2>
+<label class="checkbox-label"><input id="atm-enabled" type="checkbox"> Учитывать комиссию</label>
+<div id="atm-settings" hidden>
+<label for="atm-currency">Валюта снятия</label><select id="atm-currency" class="rate-input"></select>
+<label for="atm-percent">Комиссия сверх суммы снятия, %</label><input id="atm-percent" class="rate-input" type="text" inputmode="decimal" value="0" aria-describedby="atm-help">
+<p id="atm-help" class="subtitle">При снятии 100 и комиссии 2% спишется 102.</p>
+<label for="atm-mode">Считать выбранную сумму выше как</label><select id="atm-mode" class="rate-input"><option value="withdrawal">Наличные, которые хочу получить</option><option value="budget">Бюджет вместе с комиссией</option></select>
+<div id="atm-result" class="atm-result" role="status" aria-live="polite"></div>
+</div></section>
+<aside class="info-box"><strong>Как пользоваться:</strong><br>1. Задайте названия валют и курсы между соседними валютами.<br>2. Введите сумму в любой валюте.<br>3. Для снятия включите комиссию и выберите валюту банкомата.<br>Настройки сохраняются в этом браузере. Все курсы вводятся вручную.</aside>
+<aside class="chain-info">Суммы выше показывают обмен без комиссии банкомата. Итог снятия и его стоимость во всех валютах показаны отдельно. Обратный расчёт использует те же курсы.</aside>
+<footer class="app-footer"><p>v1.1.0 | <a href="https://github.com/naggets/currency-exchange" target="_blank" rel="noopener">GitHub</a></p></footer>
+</main>
+<script src="scripts/conversion.js"></script><script src="scripts/calculator.js"></script>
 </body>
 </html>

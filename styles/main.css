@@ -430,3 +430,28 @@ h1 {
         display: none;
     }
 }
+/* Editable chains and ATM summary */
+[hidden] { display: none !important; }
+.settings-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.secondary-button { border: 1px solid var(--primary-color); background: white; color: var(--primary-dark); border-radius: 8px; padding: 10px 12px; cursor: pointer; font: inherit; font-size: 13px; }
+.secondary-button:disabled { opacity: .45; cursor: default; }
+.name-row { display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center; gap: 12px; margin-bottom: 10px; }
+#rate-settings { margin-top: 20px; }
+.rate-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.rate-label, .currency-label { overflow-wrap: anywhere; }
+.currency-label { width: 100px; flex-shrink: 1; }
+.atm-section { margin-top: 25px; }
+.atm-section h2 { font-size: 18px; }
+.checkbox-label { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+#atm-settings > label { display: block; margin: 14px 0 6px; font-size: 14px; }
+#atm-help { margin-top: 8px; }
+.atm-result { margin-top: 16px; padding: 12px; background: white; border-radius: 8px; overflow-wrap: anywhere; font-size: 14px; }
+.atm-result p + p { margin-top: 6px; }
+.error-message { color: #b42318; font-size: 13px; margin-bottom: 12px; }
+[aria-invalid="true"] { border-color: #b42318; }
+.source-amount { border-color: var(--primary-color); background: #f5f6ff; }
+@media (max-width: 500px) {
+    .rate-row { grid-template-columns: 1fr; }
+    .currency-label { width: auto; }
+    .rate-input, .secondary-button { font-size: 16px; }
+}

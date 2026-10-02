@@ -26,6 +26,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Test calculations
+        run: node --test tests/conversion.test.js
+
       - name: Validate HTML
         uses: Cyb3r-Jak3/html5validator-action@v7.2.0
         with:
@@ -41,6 +49,7 @@ jobs:
 
   # Build and deploy
   deploy:
+    if: github.event_name != 'pull_request'
     needs: lint
     runs-on: ubuntu-latest
     environment:
