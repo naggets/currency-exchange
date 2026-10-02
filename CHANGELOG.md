@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-02
+
+### Added
+- Editable currency names and chains of 2–10 currencies
+- RUB → KGS → RSD → EUR preset with manual rates
+- ATM surcharge and withdrawal budget calculations
+- Saved settings migration and calculation tests
+
+### Fixed
+- Preserve the last edited amount when rates change
+- Reject invalid rates and amounts instead of displaying misleading results
+
 ## [1.0.2] - 2025-10-16
 
 ### Fixed
