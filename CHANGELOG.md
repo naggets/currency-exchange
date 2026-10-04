@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-04
+
+### Added
+- Public automatic Visa, Unired, MTS ELQR and Bakai rates, with publisher and timestamps
+- Per-pair commissions, inverse quotes and Visa-style OIF calculation
+- Automatic ELQR/Bakai and Unired presets with manual exchange-office EUR rate
+- Scheduled collection and GitHub Pages deployment every two hours
+- Stale-source and OCR validation, with manual input retained
+
 ## [1.1.0] - 2026-10-02
 
 ### Added

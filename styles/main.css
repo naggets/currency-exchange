@@ -455,3 +455,15 @@ h1 {
     .currency-label { width: auto; }
     .rate-input, .secondary-button { font-size: 16px; }
 }
+
+.pair-card { padding: 16px; margin-top: 16px; border: 1px solid var(--border-color); border-radius: 12px; background: white; }
+.pair-card > label { display: block; font-size: 13px; margin: 12px 0 6px; }
+.pair-card > label:first-child { margin-top: 0; }
+.pair-info { margin-top: 12px; padding: 10px; background: #f2f4ff; border-radius: 8px; font-size: 12px; overflow-wrap: anywhere; }
+.pair-info p + p { margin-top: 6px; }
+.pair-info a { display: inline-block; margin: 8px 12px 0 0; }
+.amount-group { flex: 1; min-width: 0; }
+.amount-group .currency-input { width: 100%; }
+.amount-reference { font-size: 12px; color: var(--text-secondary); margin: 6px 0; overflow-wrap: anywhere; }
+.rate-input[readonly] { background: #eef2ff; }
+#preset-help { margin-bottom: 12px; }

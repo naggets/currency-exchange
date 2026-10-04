@@ -1,0 +1,13 @@
+{
+  "name": "currency-exchange",
+  "version": "1.2.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "collect-rates": "node scripts/collect-rates.cjs"
+  },
+  "dependencies": {
+    "sharp": "0.34.5",
+    "tesseract.js": "6.0.1"
+  }
+}

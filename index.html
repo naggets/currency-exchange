@@ -10,15 +10,17 @@
 </head>
 <body>
 <main class="container">
-<header><h1>💱 Калькулятор валют</h1><p class="subtitle">Ваши валюты, ваши курсы. Введите любую сумму — остальные пересчитаются.</p></header>
+<header><h1>💱 Калькулятор валют</h1><p class="subtitle">Цепочка обменов, автоматические курсы и комиссии на каждом шаге.</p></header>
 <section class="rates-section" aria-labelledby="settings-title">
 <div class="rates-header"><h2 id="settings-title">Валюты и курсы</h2><button class="toggle-rates" id="toggle-rates" aria-expanded="true" aria-controls="rates-content">Свернуть</button></div>
 <div id="rates-content">
-<p class="subtitle">Названия можно менять. Каждый курс связывает две соседние валюты.</p>
-<div class="settings-actions"><button id="serbia-preset" class="secondary-button" aria-describedby="preset-help">RUB → KGS → RSD → EUR</button><button id="add-currency" class="secondary-button">+ Добавить валюту</button><button id="remove-currency" class="secondary-button">Убрать последнюю</button></div>
-<p id="preset-help" class="subtitle">Готовая цепочка заменит валюты и очистит курсы — задайте их заново.</p>
+<p class="subtitle">Названия можно менять. Для автокурсов используйте коды валют, например USD и JPY. Каждый курс связывает две соседние валюты.</p>
+<div class="settings-actions"><button id="serbia-preset" class="secondary-button" aria-describedby="preset-help">ELQR → Бакай → Visa → EUR</button><button id="add-currency" class="secondary-button">+ Добавить валюту</button><button id="remove-currency" class="secondary-button">Убрать последнюю</button></div>
+<p id="preset-help" class="subtitle">Готовая цепочка заменит валюты и подключит автокурсы. Курс обменника RSD/EUR задайте вручную.</p>
+<div class="settings-actions"><button id="unired-preset" class="secondary-button">RUB → USD → RSD → EUR · OIF 1,5%</button><button id="refresh-rates" class="secondary-button">Загрузить опубликованные курсы</button></div>
+<p id="feed-status" class="subtitle" role="status" aria-live="polite"></p>
 <div id="currency-settings"></div><div id="rate-settings"></div>
-<a href="https://www.visa.com.sg/support/consumer/travel-support/exchange-rate-calculator.html" target="_blank" rel="noopener">🌐 Проверить курс Visa</a>
+<a href="https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html" target="_blank" rel="noopener">🌐 Проверить курс Visa</a>
 </div>
 <div class="save-indicator" id="save-indicator" role="status" aria-live="polite"></div>
 </section>
@@ -33,10 +35,10 @@
 <label for="atm-mode">Считать выбранную сумму выше как</label><select id="atm-mode" class="rate-input"><option value="withdrawal">Наличные, которые хочу получить</option><option value="budget">Бюджет вместе с комиссией</option></select>
 <div id="atm-result" class="atm-result" role="status" aria-live="polite"></div>
 </div></section>
-<aside class="info-box"><strong>Как пользоваться:</strong><br>1. Задайте названия валют и курсы между соседними валютами.<br>2. Введите сумму в любой валюте.<br>3. Для снятия включите комиссию и выберите валюту банкомата.<br>Настройки сохраняются в этом браузере. Все курсы вводятся вручную.</aside>
-<aside class="chain-info">Суммы выше показывают обмен без комиссии банкомата. Итог снятия и его стоимость во всех валютах показаны отдельно. Обратный расчёт использует те же курсы.</aside>
-<footer class="app-footer"><p>v1.1.0 | <a href="https://github.com/naggets/currency-exchange" target="_blank" rel="noopener">GitHub</a></p></footer>
+<aside class="info-box"><strong>Как пользоваться:</strong><br>1. Задайте названия валют и выберите источник каждой пары.<br>2. Для ручного курса можно выбрать обратную котировку: например, 1 USD = 85,5 RUB.<br>3. Укажите комиссию отдельно. Если она уже включена в курс, выберите соответствующий режим.<br>4. Введите сумму в любой валюте.<br>Настройки сохраняются в этом браузере.</aside>
+<aside class="chain-info">Комиссия «сверх суммы» учитывается как в калькуляторе Visa: при расходе на 100 единиц списывается 101,5 при 1,5%. Поэтому доступная сумма из бюджета уменьшается через деление на 1,015. Основные суммы включают комиссии пар; банкомат считается дополнительно. Обратный расчёт показывает стоимость той же цепочки, а не новый перевод в обратную сторону.</aside>
+<footer class="app-footer"><p>v1.2.0 | <a href="https://github.com/naggets/currency-exchange" target="_blank" rel="noopener">GitHub</a></p></footer>
 </main>
-<script src="scripts/conversion.js"></script><script src="scripts/calculator.js"></script>
+<script src="scripts/conversion.js"></script><script src="scripts/rate-sources.js"></script><script src="scripts/calculator.js"></script>
 </body>
 </html>
