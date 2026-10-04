@@ -1,9 +1,31 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {effectiveRate,convert}=require('../scripts/conversion');
+const {effectiveRate,convert,convertBetween,withdrawal}=require('../scripts/conversion');
 const {lookup}=require('../scripts/rate-sources');
 const {parseBakai}=require('../scripts/collect-rates.cjs');
 const near=(value,expected)=>assert.ok(Math.abs(value-expected)<1e-8);
+test('ATM converts local cash through OIF once, then applies percent or minimum in USD',()=>{
+    const rate=effectiveRate('104.279999',false,'1.5');
+    const usd=convertBetween(65000,2,1,[1/85.5,rate,NaN]);
+    near(usd,65000/104.279999*1.015);
+    const large=withdrawal(usd,1,'withdrawal',3);
+    near(large.fee,usd*0.01);near(large.debit,usd*1.01);
+    const small=withdrawal(100,1,'withdrawal',3);
+    assert.equal(small.fee,3);assert.equal(small.debit,103);
+    near(convertBetween(large.debit,1,0,[1/85.5,rate]),large.debit*85.5);
+});
+test('ATM budget reverses both fee branches and refuses a budget below the minimum',()=>{
+    near(withdrawal(1010,1,'budget',3).cash,1000);
+    assert.equal(withdrawal(103,1,'budget',3).cash,100);
+    assert.equal(withdrawal(2,1,'budget',3),null);
+    assert.equal(withdrawal(100,1,'withdrawal',-1),null);
+    assert.deepEqual(withdrawal(0,1,'withdrawal',3),{cash:0,debit:0,fee:0});
+});
+test('ATM only needs valid rates along the selected cash/card path',()=>{
+    assert.equal(convertBetween(100,1,2,[NaN,2,NaN]),200);
+    assert.equal(convertBetween(200,2,1,[NaN,2,NaN]),100);
+    assert.equal(convertBetween(100,0,2,[NaN,2]),null);
+});
 test('OIF matches the Visa calculator and reverse cost of the same chain',()=>{
     const rate=effectiveRate('104.279999',false,'1.5','surcharge');
     near(rate,104.279999/1.015);

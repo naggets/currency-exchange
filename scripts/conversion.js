@@ -12,12 +12,23 @@
         for (let i = source - 1; i >= 0; i--) amounts[i] = amounts[i + 1] / rates[i];
         return amounts.every(Number.isFinite) ? amounts : null;
     }
-    function withdrawal(amount, percent, mode) {
-        if (!Number.isFinite(amount) || amount < 0 || !Number.isFinite(percent) || percent < 0) return null;
+    function withdrawal(amount, percent, mode, minimum = 0) {
+        if (!Number.isFinite(amount) || amount < 0 || !Number.isFinite(percent) || percent < 0 || !Number.isFinite(minimum) || minimum < 0) return null;
+        if (amount === 0) return { cash: 0, debit: 0, fee: 0 };
         const factor = 1 + percent / 100;
-        const cash = mode === 'budget' ? amount / factor : amount;
-        const debit = mode === 'budget' ? amount : cash * factor;
+        const cash = mode === 'budget' ? Math.min(amount / factor, amount - minimum) : amount;
+        if (cash <= 0) return null;
+        const debit = mode === 'budget' ? amount : cash + Math.max(cash * percent / 100, minimum);
         return Number.isFinite(debit) ? { cash, debit, fee: debit - cash } : null;
+    }
+    function convertBetween(amount, source, target, rates) {
+        if (!Number.isFinite(amount) || amount < 0 || !Number.isInteger(source) || !Number.isInteger(target) || Math.min(source, target) < 0 || Math.max(source, target) > rates.length) return null;
+        let result = amount;
+        for (let i = Math.min(source, target); i < Math.max(source, target); i++) {
+            if (!Number.isFinite(rates[i]) || rates[i] <= 0) return null;
+            result = source < target ? result * rates[i] : result / rates[i];
+        }
+        return Number.isFinite(result) ? result : null;
     }
     function effectiveRate(value, inverse = false, percent = 0, feeMode = 'surcharge') {
         const quote = parseNumber(value);
@@ -28,7 +39,7 @@
         if (feeMode === 'withhold') return fee < 100 ? base * (1 - fee / 100) : NaN;
         return base / (1 + fee / 100);
     }
-    const api = { parseNumber, convert, withdrawal, effectiveRate };
+    const api = { parseNumber, convert, convertBetween, withdrawal, effectiveRate };
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     else root.Conversion = api;
 })(typeof window !== 'undefined' ? window : globalThis);

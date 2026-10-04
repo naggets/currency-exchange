@@ -1,3 +1,10 @@
+# Version 1.3.0 — 2026-10-04
+
+- Redesigned the interface around one currency route, dropdowns, currency swaps and movement arrows.
+- Consolidated transfer presets and collapsed detailed pair settings.
+- Separated local ATM cash from the card/fee currency, adding a minimum fee and a reverse card-budget calculation.
+- Added an explicit withdrawal breakdown and total-cost equivalents across the chain; preserved OIF without applying it twice.
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
