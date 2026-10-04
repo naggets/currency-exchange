@@ -361,7 +361,9 @@ byId('route-preset').addEventListener('change', () => {
     const route = byId('route-preset').value;
     if (route === 'custom') return;
     const usd = settings.names.findIndex(n => n.trim().toUpperCase() === 'USD');
-    const local = usd >= 0 && settings.names[usd + 1] ? settings.names[usd + 1] : 'RSD';
+    const isLocal = name => name && !['RUB', 'KGS', 'USD'].includes(name.trim().toUpperCase());
+    const selectedCash = settings.names[settings.atmCurrency];
+    const local = isLocal(selectedCash) ? selectedCash : isLocal(settings.names[usd + 1]) ? settings.names[usd + 1] : settings.names.find(isLocal) || 'RSD';
     settings.names = route === 'elqr' ? ['RUB', 'KGS', 'USD', local] : ['RUB', 'USD', local];
     settings.rates = settings.names.slice(1).map(() => '');
     settings.pairs = route === 'elqr' ? [{source:'multi'}, {source:'bakai'}, {source:'visa',fee:'1.5'}] : [{source:'unired'}, {source:'visa',fee:'1.5'}];
