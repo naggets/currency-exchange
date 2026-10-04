@@ -6,7 +6,7 @@ Editable chains of 2–10 currencies, automatic quotes, per-pair fees and an add
 
 ## Use
 
-Choose **ELQR → Бакай → Visa → EUR** for RUB → KGS → USD → RSD → EUR, or **RUB → USD → RSD → EUR** for Unired. These buttons replace the current chain. Enter the exchange-office EUR rate manually: the inverse quote accepts the number of RSD paid for 1 EUR. Existing saved settings remain unchanged until you select a preset.
+Choose a transfer route (ELQR + Bakai or Unired), then choose the spending currency from its dropdown. Existing saved chains are preserved. Currency arrows move nodes, and choosing another currency already in the chain swaps the two nodes. Quotes are kept only for unchanged pairs; new pairs get a supported source or require a manual quote. Changing the spending currency of an existing USD Visa pair preserves its fee settings. Individual quote settings and source details are expandable. Add EUR if you need a further cash exchange and enter its exchange-office quote manually.
 
 Automatic sources support these directions:
 
@@ -17,7 +17,7 @@ Automatic sources support these directions:
 | Bakai | KGS → USD / USD → KGS | Official noncash sell / buy quotes |
 | Visa | USD budget → selected currency spending | Kylc copy of Visa's spending → USD billing rate |
 
-For Japan, rename the currency to **JPY** and select Visa for the USD → JPY pair. Currency inputs suggest collected codes. The collector follows all currency links published by Kylc for USD cards, with two concurrent requests. Each currency is checked independently; missing or stale quotes require manual input. The official comparison below covers RSD; other currencies are published mirror values without an individual official comparison.
+For Japan, select **JPY** in the currency dropdown and select Visa for the USD → JPY pair. Currency dropdowns include collected codes and Russian names. The collector follows all currency links published by Kylc for USD cards, with two concurrent requests. Each currency is checked independently; missing or stale quotes require manual input. The official comparison below covers RSD; other currencies are published mirror values without an individual official comparison.
 
 Visa was compared with its official calculator for 2026-10-01, 2026-10-02 and 2026-10-04. Values matched at Kylc's published precision of 8 decimal places; this is not a guarantee of future data. Curso is a third-party morning snapshot, not an intraday quote from the transfer service. Telegram login is not used. Each pair shows its publisher, publication/quote date and collection time, with a link to the source.
 
@@ -25,7 +25,7 @@ A normal card payment and the inverse budget calculation use the same spending/b
 
 ## Fees
 
-For a fee added to the debit, the affordable converted amount is `budget × base rate / (1 + fee / 100)`. The Visa preset uses OIF 1.5%. Other modes are withholding and an already fee-inclusive quote; the latter avoids charging twice. ATM fees are calculated separately after the pair fees.
+For a fee added to the debit, the affordable converted amount is `budget × base rate / (1 + fee / 100)`. The Visa preset uses OIF 1.5%. Other modes are withholding and an already fee-inclusive quote; the latter avoids charging twice. ATM fees are calculated separately after the pair fees. Choose the local cash currency and the card/fee currency independently. Enter the desired cash amount, or switch to a total card budget. The withdrawal fee is `max(card amount × percent / 100, minimum)` in the selected card currency, with no intermediate rounding. Example: 65,000 RSD at Visa 104.2799625 RSD/USD, OIF 1.5%, withdrawal 1% with a minimum 3 USD results in about 632.67 USD conversion + 6.33 USD fee = 639.00 USD debit. The breakdown lists cash, conversion, fee, total debit and equivalents across the chain. A missing quote outside the cash/card path does not block the withdrawal calculation; that equivalent is marked unavailable.
 
 ## Updates and failures
 

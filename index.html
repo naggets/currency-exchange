@@ -3,41 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#667eea">
+<meta name="theme-color" content="#f5f7fb">
 <title>Калькулятор валют</title>
 <link rel="stylesheet" href="styles/main.css">
 <link rel="manifest" href="manifest.json">
 </head>
 <body>
 <main class="container">
-<header><h1>💱 Калькулятор валют</h1><p class="subtitle">Цепочка обменов, автоматические курсы и комиссии на каждом шаге.</p></header>
+<header><p class="eyebrow">ОБМЕН · ОПЛАТА · НАЛИЧНЫЕ</p><h1>Ваш маршрут денег</h1><p class="subtitle">Выберите валюты, сравните суммы и учтите комиссии.</p></header>
 <section class="rates-section" aria-labelledby="settings-title">
-<div class="rates-header"><h2 id="settings-title">Валюты и курсы</h2><button class="toggle-rates" id="toggle-rates" aria-expanded="true" aria-controls="rates-content">Свернуть</button></div>
+<div class="rates-header"><h2 id="settings-title">Цепочка обмена</h2><button class="toggle-rates" id="toggle-rates" aria-expanded="true" aria-controls="rates-content">Свернуть настройки</button></div>
 <div id="rates-content">
-<p class="subtitle">Названия можно менять. Для автокурсов используйте коды валют, например USD и JPY. Каждый курс связывает две соседние валюты.</p>
-<div class="settings-actions"><button id="serbia-preset" class="secondary-button" aria-describedby="preset-help">ELQR → Бакай → Visa → EUR</button><button id="add-currency" class="secondary-button">+ Добавить валюту</button><button id="remove-currency" class="secondary-button">Убрать последнюю</button></div>
-<p id="preset-help" class="subtitle">Готовая цепочка заменит валюты и подключит автокурсы. Курс обменника RSD/EUR задайте вручную.</p>
-<div class="settings-actions"><button id="unired-preset" class="secondary-button">RUB → USD → RSD → EUR · OIF 1,5%</button><button id="refresh-rates" class="secondary-button">Загрузить опубликованные курсы</button></div>
+<div class="route-toolbar"><div><label for="route-preset">Способ перевода</label><select id="route-preset" class="rate-input"><option value="custom">Моя цепочка</option><option value="elqr">Через ELQR и Бакай</option><option value="unired">Через Unired</option></select></div><button id="refresh-rates" class="secondary-button">Обновить курсы</button></div>
+<p id="preset-help" class="subtitle">Готовый маршрут заменяет цепочку. После USD выберите валюту страны: RSD, JPY или другую.</p>
+<div id="currency-settings" class="chain-nodes"></div>
+<div class="settings-actions"><button id="add-currency" class="secondary-button">+ Валюта</button><button id="remove-currency" class="secondary-button">Убрать последнюю</button></div>
+<p class="subtitle">Стрелки переставляют валюты. Курсы новых пар подбираются автоматически, если источник доступен.</p>
 <p id="feed-status" class="subtitle" role="status" aria-live="polite"></p>
-<div id="currency-settings"></div><div id="rate-settings"></div>
+<div id="rate-settings"></div>
 <a href="https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html" target="_blank" rel="noopener">🌐 Проверить курс Visa</a>
 </div>
 <div class="save-indicator" id="save-indicator" role="status" aria-live="polite"></div>
 </section>
-<section class="amounts-section" aria-labelledby="amounts-title"><h2 id="amounts-title">Суммы валют</h2><p id="calculation-error" class="error-message" role="status" aria-live="polite"></p><div id="currency-amounts"></div></section>
+<section class="amounts-section" aria-labelledby="amounts-title"><h2 id="amounts-title">Суммы по цепочке</h2><p class="subtitle">Введите сумму в любой валюте — остальные пересчитаются.</p><p id="calculation-error" class="error-message" role="status" aria-live="polite"></p><div id="currency-amounts"></div></section>
 <section class="rates-section atm-section" aria-labelledby="atm-title">
-<h2 id="atm-title">🏧 Снятие в банкомате</h2>
-<label class="checkbox-label"><input id="atm-enabled" type="checkbox"> Учитывать комиссию</label>
+<h2 id="atm-title">Снятие наличных</h2><p class="subtitle">Наличные — в местной валюте, списание и комиссия — в валюте карты.</p>
+<label class="checkbox-label"><input id="atm-enabled" type="checkbox"> Рассчитать снятие</label>
 <div id="atm-settings" hidden>
-<label for="atm-currency">Валюта снятия</label><select id="atm-currency" class="rate-input"></select>
-<label for="atm-percent">Комиссия сверх суммы снятия, %</label><input id="atm-percent" class="rate-input" type="text" inputmode="decimal" value="0" aria-describedby="atm-help">
-<p id="atm-help" class="subtitle">При снятии 100 и комиссии 2% спишется 102.</p>
-<label for="atm-mode">Считать выбранную сумму выше как</label><select id="atm-mode" class="rate-input"><option value="withdrawal">Наличные, которые хочу получить</option><option value="budget">Бюджет вместе с комиссией</option></select>
+<div class="atm-grid"><div><label for="atm-currency">Валюта наличных</label><select id="atm-currency" class="rate-input"></select></div><div><label for="atm-card-currency">Валюта карты и комиссии</label><select id="atm-card-currency" class="rate-input"></select></div></div>
+<label for="atm-mode">Что считаем</label><select id="atm-mode" class="rate-input"><option value="withdrawal">Хочу получить наличные</option><option value="budget">Есть бюджет на карте с учётом комиссии</option></select>
+<label id="atm-amount-label" for="atm-amount">Сумма наличных</label><input id="atm-amount" class="currency-input" type="text" inputmode="decimal" placeholder="Например, 65 000">
+<div class="atm-grid"><div><label for="atm-percent">Комиссия за снятие, %</label><input id="atm-percent" class="rate-input" type="text" inputmode="decimal" value="1"></div><div><label id="atm-minimum-label" for="atm-minimum">Минимум комиссии</label><input id="atm-minimum" class="rate-input" type="text" inputmode="decimal" value="3"></div></div>
+<p id="atm-help" class="subtitle">Комиссия за снятие — большее из процента и минимума, а не их сумма. OIF учитывается в паре Visa и повторно не добавляется.</p>
 <div id="atm-result" class="atm-result" role="status" aria-live="polite"></div>
 </div></section>
-<aside class="info-box"><strong>Как пользоваться:</strong><br>1. Задайте названия валют и выберите источник каждой пары.<br>2. Для ручного курса можно выбрать обратную котировку: например, 1 USD = 85,5 RUB.<br>3. Укажите комиссию отдельно. Если она уже включена в курс, выберите соответствующий режим.<br>4. Введите сумму в любой валюте.<br>Настройки сохраняются в этом браузере.</aside>
-<aside class="chain-info">Комиссия «сверх суммы» учитывается как в калькуляторе Visa: при расходе на 100 единиц списывается 101,5 при 1,5%. Поэтому доступная сумма из бюджета уменьшается через деление на 1,015. Основные суммы включают комиссии пар; банкомат считается дополнительно. Обратный расчёт показывает стоимость той же цепочки, а не новый перевод в обратную сторону.</aside>
-<footer class="app-footer"><p>v1.2.0 | <a href="https://github.com/naggets/currency-exchange" target="_blank" rel="noopener">GitHub</a></p></footer>
+<aside class="info-box">Настройки сохраняются в этом браузере. Курсы и комиссии каждого перехода можно раскрыть в карточках выше. Обратный расчёт показывает стоимость той же цепочки.</aside>
+<footer class="app-footer"><p>v1.3.0 · <a href="https://github.com/naggets/currency-exchange" target="_blank" rel="noopener">GitHub</a></p></footer>
 </main>
 <script src="scripts/conversion.js"></script><script src="scripts/rate-sources.js"></script><script src="scripts/calculator.js"></script>
 </body>

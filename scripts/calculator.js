@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'currencyCalculator.v2';
-const { parseNumber, convert, withdrawal, effectiveRate } = Conversion;
+const { parseNumber, convert, convertBetween, withdrawal, effectiveRate } = Conversion;
 const byId = id => document.getElementById(id);
 let sourceIndex = 0;
 let sourceValue = '';
@@ -8,12 +8,14 @@ let saveTimer;
 let rateFeed = null;
 
 function loadSettings() {
-    const defaults = { names: ['RUB', 'KGS', 'USD', 'RSD', 'EUR'], rates: ['', '', '', ''], pairs: [{source:'multi'}, {source:'bakai'}, {source:'visa',fee:'1.5'}, {inverse:true}], atmEnabled: false, atmCurrency: 3, atmPercent: '0', atmMode: 'withdrawal' };
+    const defaults = { names: ['RUB', 'KGS', 'USD', 'RSD', 'EUR'], rates: ['', '', '', ''], pairs: [{source:'multi'}, {source:'bakai'}, {source:'visa',fee:'1.5'}, {inverse:true}], atmEnabled: false, atmCurrency: 3, atmCardCurrency: 2, atmPercent: '1', atmMinimum: '3', atmAmount: '', atmMode: 'withdrawal' };
     try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
         if (saved && Array.isArray(saved.names) && saved.names.length >= 2 && saved.names.length <= 10 && saved.names.every(name => typeof name === 'string') && Array.isArray(saved.rates) && saved.rates.length === saved.names.length - 1 && saved.rates.every(rate => typeof rate === 'string')) {
             return { ...defaults, ...saved, pairs: Array.isArray(saved.pairs) ? saved.pairs : [], atmCurrency: Number.isInteger(saved.atmCurrency) && saved.atmCurrency >= 0 && saved.atmCurrency < saved.names.length ? saved.atmCurrency : saved.names.length - 1,
-                atmPercent: typeof saved.atmPercent === 'string' ? saved.atmPercent : '0', atmMode: saved.atmMode === 'budget' ? 'budget' : 'withdrawal' };
+                atmCardCurrency: Number.isInteger(saved.atmCardCurrency) && saved.atmCardCurrency >= 0 && saved.atmCardCurrency < saved.names.length ? saved.atmCardCurrency : Math.max(0, saved.names.findIndex(n => n.toUpperCase() === 'USD')),
+                atmMinimum: typeof saved.atmMinimum === 'string' ? saved.atmMinimum : '3', atmAmount: typeof saved.atmAmount === 'string' ? saved.atmAmount : '',
+                atmPercent: typeof saved.atmPercent === 'string' ? saved.atmPercent : '1', atmMode: saved.atmMode === 'budget' ? 'budget' : 'withdrawal' };
         }
         // Migrate the old inverse KGS/USD quote without changing the user's chain.
         const legacyKeys = ['rubKgsBuy', 'usdKgsSell', 'usdJpyBuy'];
@@ -84,22 +86,77 @@ function makeInput(id, value, className) {
     Object.assign(input, { id, type: 'text', value, className });
     return input;
 }
+const currencyNames = new Intl.DisplayNames(['ru'], { type: 'currency' });
+function currencyOptions() {
+    const common = ['RUB', 'KGS', 'USD', 'RSD', 'EUR', 'JPY', 'GBP', 'CHF', 'CNY', 'THB', 'TRY', 'AED'];
+    const codes = [...new Set([...common, ...(rateFeed?.quotes || []).filter(q => q.source === 'visa').map(q => q.to), ...settings.names.map(n => n.trim().toUpperCase())])];
+    return codes.filter(Boolean).map(code => {
+        let name = code;
+        try { name = currencyNames.of(code); } catch (error) { /* Custom name. */ }
+        return [code, name && name !== code ? `${code} · ${name}` : code];
+    });
+}
+function suggestedPair(from, to) {
+    if (from === 'RUB' && to === 'KGS') return { source: 'multi' };
+    if (from === 'RUB' && to === 'USD') return { source: 'unired' };
+    if ((from === 'KGS' && to === 'USD') || (from === 'USD' && to === 'KGS')) return { source: 'bakai' };
+    if (from === 'USD' && (rateFeed?.quotes || []).some(q => q.source === 'visa' && q.to === to)) return { source: 'visa', fee: '1.5' };
+    return { source: 'manual' };
+}
+function changeChain(nextNames, indexMap) {
+    const oldNames = settings.names.map(n => n.trim().toUpperCase());
+    const nextRates = [], nextPairs = [];
+    for (let i = 0; i < nextNames.length - 1; i++) {
+        const from = nextNames[i].trim().toUpperCase(), to = nextNames[i + 1].trim().toUpperCase();
+        const old = oldNames.findIndex((n, j) => n === from && oldNames[j + 1] === to);
+        const samePosition = indexMap[i] === i && indexMap[i + 1] === i + 1;
+        // Visa settings follow the USD card when only its spending currency changes.
+        const visa = samePosition && oldNames[i] === from && settings.pairs[i]?.source === 'visa' && from === 'USD';
+        nextRates.push(old >= 0 ? settings.rates[old] : '');
+        nextPairs.push(old >= 0 ? { ...settings.pairs[old] } : visa ? { ...settings.pairs[i] } : suggestedPair(from, to));
+    }
+    sourceIndex = Math.max(0, indexMap.indexOf(sourceIndex));
+    settings.atmCurrency = Math.max(0, indexMap.indexOf(settings.atmCurrency));
+    settings.atmCardCurrency = Math.max(0, indexMap.indexOf(settings.atmCardCurrency));
+    settings.names = nextNames; settings.rates = nextRates; settings.pairs = nextPairs;
+    byId('route-preset').value = 'custom';
+    renderChain(); saveSettings();
+}
+function moveCurrency(index, offset) {
+    const target = index + offset;
+    if (target < 0 || target >= settings.names.length) return;
+    const names = [...settings.names], indices = names.map((_, i) => i);
+    [names[index], names[target]] = [names[target], names[index]];
+    [indices[index], indices[target]] = [indices[target], indices[index]];
+    changeChain(names, indices);
+}
 function renderChain() {
     normalizePairs();
-    ['currency-settings', 'rate-settings', 'currency-amounts', 'atm-currency'].forEach(id => byId(id).replaceChildren());
+    ['currency-settings', 'rate-settings', 'currency-amounts', 'atm-currency', 'atm-card-currency'].forEach(id => byId(id).replaceChildren());
     amountInputs = [];
     settings.names.forEach((name, index) => {
         const row = document.createElement('div');
-        row.className = 'name-row';
+        row.className = 'chain-node';
         const label = document.createElement('label');
         label.htmlFor = `name-${index}`;
         label.textContent = `Валюта ${index + 1}`;
-        const input = makeInput(label.htmlFor, name, 'rate-input');
-        input.maxLength = 24;
-        input.setAttribute('list', 'visa-currencies');
-        input.title = 'Для автокурса используйте код валюты: USD, JPY, RSD, EUR и другие.';
-        input.addEventListener('input', () => { settings.names[index] = input.value; updateLabels(); saveSettings(); });
-        row.append(label, input);
+        const input = makeSelect(label.htmlFor, [...currencyOptions(), ['__custom', 'Своя валюта…']], name.trim().toUpperCase());
+        input.addEventListener('change', () => {
+            if (input.value === '__custom') { custom.hidden = false; custom.focus(); return; }
+            const names = [...settings.names], indices = names.map((_, i) => i);
+            const existing = names.findIndex((n, i) => i !== index && n.trim().toUpperCase() === input.value);
+            if (existing >= 0) {
+                [names[index], names[existing]] = [names[existing], names[index]];
+                [indices[index], indices[existing]] = [indices[existing], indices[index]];
+            } else names[index] = input.value;
+            changeChain(names, indices);
+        });
+        const custom = makeInput(`custom-name-${index}`, name, 'rate-input');
+        custom.hidden = true; custom.maxLength = 24; custom.setAttribute('aria-label', `Своя валюта ${index + 1}`);
+        custom.addEventListener('change', () => { if (!custom.value.trim()) return; const names = [...settings.names]; names[index] = custom.value.trim(); changeChain(names, names.map((_, i) => i)); });
+        const controls = document.createElement('div'); controls.className = 'node-controls';
+        [-1, 1].forEach(offset => { const button = document.createElement('button'); button.className = 'move-button'; button.textContent = offset < 0 ? '←' : '→'; button.setAttribute('aria-label', `Переместить ${name} ${offset < 0 ? 'влево' : 'вправо'}`); button.disabled = index + offset < 0 || index + offset >= settings.names.length; button.addEventListener('click', () => moveCurrency(index, offset)); controls.append(button); });
+        row.append(label, input, custom, controls);
         byId('currency-settings').append(row);
         const amountRow = document.createElement('div');
         amountRow.className = 'currency-row';
@@ -124,11 +181,13 @@ function renderChain() {
         const option = document.createElement('option');
         option.value = index;
         byId('atm-currency').append(option);
+        const cardOption = document.createElement('option'); cardOption.value = index; byId('atm-card-currency').append(cardOption);
     });
     settings.rates.forEach((rate, index) => {
-        const row = document.createElement('div');
+        const row = document.createElement('details');
         row.className = 'pair-card';
         const pair = settings.pairs[index];
+        const summary = document.createElement('summary'); summary.id = `pair-summary-${index}`; row.append(summary);
         const source = makeSelect(`source-${index}`, Object.entries(RateSources.sources).map(([key, item]) => [key, item.name]), pair.source);
         addField(row, 'Источник курса', source);
         source.addEventListener('change', () => {
@@ -162,6 +221,7 @@ function renderChain() {
         byId('rate-settings').append(row);
     });
     byId('atm-currency').value = settings.atmCurrency;
+    byId('atm-card-currency').value = settings.atmCardCurrency;
     byId('add-currency').disabled = settings.names.length >= 10;
     byId('remove-currency').disabled = settings.names.length <= 2;
     updateLabels();
@@ -170,6 +230,7 @@ function updateLabels() {
     settings.names.forEach((_, i) => {
         document.querySelector(`label[for="amount-${i}"]`).textContent = nameAt(i);
         byId('atm-currency').options[i].textContent = nameAt(i);
+        byId('atm-card-currency').options[i].textContent = nameAt(i);
     });
     settings.rates.forEach((_, i) => {
         const pair = settings.pairs[i];
@@ -203,6 +264,11 @@ function renderPairInfo(i, rate) {
     const pair = settings.pairs[i];
     const item = pairQuote(i);
     const output = byId(`pair-info-${i}`);
+    const summary = byId(`pair-summary-${i}`); summary.replaceChildren();
+    const title = document.createElement('span'); title.textContent = `${nameAt(i)} → ${nameAt(i + 1)}`;
+    const description = document.createElement('span'); description.className = 'pair-summary-description';
+    description.textContent = Number.isFinite(rate) && rate > 0 ? `1 ${nameAt(i)} = ${formatRate(rate)} ${nameAt(i + 1)} · ${pair.source === 'manual' ? 'Вручную' : RateSources.sources[pair.source].name.split(' · ')[0]}${parseNumber(pair.fee) > 0 && pair.feeMode !== 'embedded' ? ` · комиссия ${pair.fee}%` : ''}` : item.error || 'Укажите курс';
+    summary.append(title, description);
     output.replaceChildren();
     if (pair.source !== 'manual') byId(`rate-${i}`).value = item.quote ? formatRate(item.quote.rate) : '';
     const line = text => { const p = document.createElement('p'); p.textContent = text; output.append(p); };
@@ -234,62 +300,87 @@ function renderPairInfo(i, rate) {
 }
 function renderAtm(amounts, rates) {
     byId('atm-settings').hidden = !settings.atmEnabled;
-    const output = byId('atm-result');
-    output.replaceChildren();
+    const output = byId('atm-result'); output.replaceChildren();
+    const cashIndex = settings.atmCurrency, cardIndex = settings.atmCardCurrency;
+    byId('atm-amount-label').textContent = settings.atmMode === 'budget' ? 'Бюджет на карте, ' + nameAt(cardIndex) : 'Хочу получить, ' + nameAt(cashIndex);
+    byId('atm-minimum-label').textContent = 'Минимум комиссии, ' + nameAt(cardIndex);
     if (!settings.atmEnabled) return;
-    const percent = parseNumber(settings.atmPercent);
-    byId('atm-percent').setAttribute('aria-invalid', String(!Number.isFinite(percent) || percent < 0));
-    if (!Number.isFinite(percent) || percent < 0) { output.textContent = 'Введите комиссию от 0%.'; return; }
-    if (!amounts) { output.textContent = 'Введите сумму и курсы для расчёта снятия.'; return; }
-    const index = settings.atmCurrency;
-    const result = withdrawal(amounts[index], percent, settings.atmMode);
-    const costs = result && convert(result.debit, index, rates);
-    if (!result || !costs) { output.textContent = 'Сумма слишком велика для расчёта.'; return; }
-    [`Наличные: ${result.cash.toFixed(2)} ${nameAt(index)}`, `Комиссия: ${result.fee.toFixed(2)} ${nameAt(index)}`,
-        `Всего спишется: ${result.debit.toFixed(2)} ${nameAt(index)}`,
-        `Стоимость по цепочке: ${costs.map((value, i) => `${value.toFixed(2)} ${nameAt(i)}`).join(' → ')}`
-    ].forEach(text => { const line = document.createElement('p'); line.textContent = text; output.append(line); });
+    const percent = parseNumber(settings.atmPercent), minimum = parseNumber(settings.atmMinimum);
+    [['atm-percent', percent], ['atm-minimum', minimum]].forEach(([id, value]) => byId(id).setAttribute('aria-invalid', String(!Number.isFinite(value) || value < 0)));
+    if (!Number.isFinite(percent) || percent < 0 || !Number.isFinite(minimum) || minimum < 0) { output.textContent = 'Укажите процент и минимум комиссии от нуля.'; return; }
+    const amount = settings.atmAmount.trim() ? parseNumber(settings.atmAmount) : amounts?.[settings.atmMode === 'budget' ? cardIndex : cashIndex];
+    if (!Number.isFinite(amount) || amount < 0) { output.textContent = 'Введите сумму наличных или бюджет карты.'; return; }
+    const base = settings.atmMode === 'budget' ? amount : convertBetween(amount, cashIndex, cardIndex, rates);
+    if (base === null) { output.textContent = 'Проверьте курсы между валютой наличных и валютой карты.'; return; }
+    const result = withdrawal(base, percent, settings.atmMode, minimum);
+    if (!result) { output.textContent = 'Бюджета недостаточно для комиссии или сумма слишком велика.'; return; }
+    const cash = convertBetween(result.cash, cardIndex, cashIndex, rates);
+    if (cash === null) { output.textContent = 'Проверьте курсы между валютой наличных и валютой карты.'; return; }
+    const line = (label, value, strong = false) => {
+        const row = document.createElement('div'); row.className = 'breakdown-row' + (strong ? ' breakdown-total' : '');
+        const title = document.createElement('span'); title.textContent = label;
+        const number = document.createElement('strong'); number.textContent = value; row.append(title, number); output.append(row);
+    };
+    const money = (value, index) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(value) + ' ' + nameAt(index);
+    line('Получите наличными', money(cash, cashIndex));
+    line('Конвертация в валюту карты', money(result.cash, cardIndex));
+    line('Комиссия за снятие · ' + percent + '% или минимум ' + minimum + ' ' + nameAt(cardIndex), money(result.fee, cardIndex));
+    line('Всего спишется с карты', money(result.debit, cardIndex), true);
+    const note = document.createElement('p'); note.className = 'subtitle'; note.textContent = 'Комиссии пар, включая OIF, уже учтены в конвертации. Комиссия за снятие добавлена отдельно.'; output.append(note);
+    const heading = document.createElement('h3'); heading.textContent = 'Эквиваленты итогового списания'; output.append(heading);
+    settings.names.forEach((_, index) => {
+        if (index === cardIndex) return;
+        const value = convertBetween(result.debit, cardIndex, index, rates);
+        line(nameAt(index), value === null ? 'Нет курса' : money(value, index));
+    });
+    const explanation = document.createElement('p'); explanation.className = 'subtitle'; explanation.textContent = 'Это эквиваленты полной стоимости по цепочке. В валюте наличных показан расход вместе с комиссией, а полученная сумма — в первой строке.'; output.append(explanation);
 }
 byId('toggle-rates').addEventListener('click', () => {
     const content = byId('rates-content');
     content.hidden = !content.hidden;
-    byId('toggle-rates').textContent = content.hidden ? 'Развернуть' : 'Свернуть';
+    byId('toggle-rates').textContent = content.hidden ? 'Настроить цепочку' : 'Свернуть настройки';
     byId('toggle-rates').setAttribute('aria-expanded', String(!content.hidden));
 });
 byId('add-currency').addEventListener('click', () => {
     if (settings.names.length >= 10) return;
-    settings.names.push(`Валюта ${settings.names.length + 1}`);
+    settings.names.push('EUR');
     settings.rates.push('');
+    byId('route-preset').value = 'custom';
     renderChain(); saveSettings();
 });
 byId('remove-currency').addEventListener('click', () => {
     if (settings.names.length <= 2) return;
     settings.names.pop(); settings.rates.pop();
     settings.atmCurrency = Math.min(settings.atmCurrency, settings.names.length - 1);
+    settings.atmCardCurrency = Math.min(settings.atmCardCurrency, settings.names.length - 1);
+    settings.pairs.pop(); byId('route-preset').value = 'custom';
     if (sourceIndex >= settings.names.length) { sourceIndex = 0; sourceValue = ''; }
     renderChain(); saveSettings();
 });
-byId('serbia-preset').addEventListener('click', () => {
-    settings.names = ['RUB', 'KGS', 'USD', 'RSD', 'EUR'];
-    settings.rates = ['', '', '', ''];
-    settings.pairs = [{source:'multi'}, {source:'bakai'}, {source:'visa',fee:'1.5'}, {inverse:true}];
-    settings.atmCurrency = 3; sourceIndex = 0; sourceValue = '';
-    renderChain(); saveSettings();
-});
-byId('unired-preset').addEventListener('click', () => {
-    settings.names = ['RUB', 'USD', 'RSD', 'EUR'];
-    settings.rates = ['', '', ''];
-    settings.pairs = [{ source: 'unired' }, { source: 'visa', fee: '1.5' }, { inverse: true }];
-    settings.atmCurrency = 2; sourceIndex = 0; sourceValue = '';
-    renderChain(); saveSettings();
+byId('route-preset').addEventListener('change', () => {
+    const route = byId('route-preset').value;
+    if (route === 'custom') return;
+    const usd = settings.names.findIndex(n => n.trim().toUpperCase() === 'USD');
+    const local = usd >= 0 && settings.names[usd + 1] ? settings.names[usd + 1] : 'RSD';
+    settings.names = route === 'elqr' ? ['RUB', 'KGS', 'USD', local] : ['RUB', 'USD', local];
+    settings.rates = settings.names.slice(1).map(() => '');
+    settings.pairs = route === 'elqr' ? [{source:'multi'}, {source:'bakai'}, {source:'visa',fee:'1.5'}] : [{source:'unired'}, {source:'visa',fee:'1.5'}];
+    settings.atmCurrency = settings.names.length - 1; settings.atmCardCurrency = settings.names.length - 2;
+    sourceIndex = 0; sourceValue = ''; renderChain(); saveSettings();
 });
 byId('atm-enabled').checked = settings.atmEnabled;
 byId('atm-percent').value = settings.atmPercent;
 byId('atm-mode').value = settings.atmMode;
-['atm-enabled', 'atm-currency', 'atm-percent', 'atm-mode'].forEach(id => {
-    byId(id).addEventListener(id === 'atm-percent' ? 'input' : 'change', () => {
+byId('atm-minimum').value = settings.atmMinimum;
+byId('atm-amount').value = settings.atmAmount;
+['atm-enabled', 'atm-currency', 'atm-card-currency', 'atm-percent', 'atm-minimum', 'atm-amount', 'atm-mode'].forEach(id => {
+    byId(id).addEventListener(['atm-percent', 'atm-minimum', 'atm-amount'].includes(id) ? 'input' : 'change', () => {
+        if (id === 'atm-mode') byId('atm-amount').value = '';
         settings.atmEnabled = byId('atm-enabled').checked;
         settings.atmCurrency = Number(byId('atm-currency').value);
+        settings.atmCardCurrency = Number(byId('atm-card-currency').value);
+        settings.atmMinimum = byId('atm-minimum').value;
+        settings.atmAmount = byId('atm-amount').value;
         settings.atmPercent = byId('atm-percent').value;
         settings.atmMode = byId('atm-mode').value;
         saveSettings(); recalculate();
@@ -315,7 +406,9 @@ async function refreshRates() {
     } catch (error) {
         rateFeed = null;
         byId('feed-status').textContent = 'Не удалось загрузить курсы. Ручной ввод работает без подключения.';
-    } finally { button.disabled = false; recalculate(); }
+    } finally { button.disabled = false;
+        settings.names.forEach((name, i) => { const select = byId('name-' + i); const value = name.trim().toUpperCase(); select.replaceChildren(); [...currencyOptions(), ['__custom', 'Своя валюта…']].forEach(([code, text]) => { const option = document.createElement('option'); option.value = code; option.textContent = text; select.append(option); }); select.value = value; });
+        recalculate(); }
 }
 byId('refresh-rates').addEventListener('click', refreshRates);
 refreshRates();
