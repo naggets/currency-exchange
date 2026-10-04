@@ -7,9 +7,13 @@ const {parseBakai}=require('./bakai-source.cjs');
 const VISA_URL='https://www.kylc.com/huilv/i-visa/usd/rsd.html';
 const CURSO_URL='https://t.me/s/CursoUz';
 async function read(url,binary=false){
- const r=await fetch(url,{signal:AbortSignal.timeout(25000)});
- if(!r.ok)throw Error(`HTTP ${r.status}: ${new URL(url).hostname}`);
- return binary?Buffer.from(await r.arrayBuffer()):r.text();
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const r=await fetch(url,{signal:AbortSignal.timeout(25000)});
+   if(!r.ok)throw Error(`HTTP ${r.status}: ${new URL(url).hostname}`);
+   return binary?Buffer.from(await r.arrayBuffer()):await r.text();
+  }catch(error){if(attempt===2)throw error;await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}
+ }
 }
 function parseVisa(html,fetchedAt,currency='RSD'){
  if(!/^[A-Z]{3}$/.test(currency)||!/<title>VISA美元卡的/.test(html)||!html.includes('>USD -')||!html.includes(`>${currency} -`))throw Error('Unexpected Visa pair');
@@ -52,11 +56,13 @@ function latestAlbum(html,now){
 }
 async function collectCurso(html,fetchedAt){
  const album=latestAlbum(html,fetchedAt);
- const images=await Promise.all(album.images.map(url=>read(url,true)));
+ const downloads=await Promise.allSettled(album.images.map(url=>read(url,true)));
+ const images=downloads.map(result=>result.status==='fulfilled'?result.value:null);
  const worker=await createWorker('eng+rus',1,{cachePath:path.join(__dirname,'../.cache/ocr')});
  const candidates={unired:[],multi:[]}; const evidence=[];
  try{
   for(let i=0;i<images.length;i++){
+   if(!images[i])continue;
    const meta=await sharp(images[i]).metadata();
    if(meta.width!==400||meta.height<400)throw Error('Unexpected image dimensions');
    const header=await sharp(images[i]).extract({left:0,top:0,width:400,height:115}).resize({width:1600}).png().toBuffer();
