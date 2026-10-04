@@ -19,7 +19,16 @@
         const debit = mode === 'budget' ? amount : cash * factor;
         return Number.isFinite(debit) ? { cash, debit, fee: debit - cash } : null;
     }
-    const api = { parseNumber, convert, withdrawal };
+    function effectiveRate(value, inverse = false, percent = 0, feeMode = 'surcharge') {
+        const quote = parseNumber(value);
+        const fee = parseNumber(percent);
+        if (!Number.isFinite(quote) || quote <= 0 || !Number.isFinite(fee) || fee < 0) return NaN;
+        const base = inverse ? 1 / quote : quote;
+        if (feeMode === 'embedded') return base;
+        if (feeMode === 'withhold') return fee < 100 ? base * (1 - fee / 100) : NaN;
+        return base / (1 + fee / 100);
+    }
+    const api = { parseNumber, convert, withdrawal, effectiveRate };
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     else root.Conversion = api;
 })(typeof window !== 'undefined' ? window : globalThis);

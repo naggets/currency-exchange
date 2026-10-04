@@ -1,77 +1,68 @@
-name: Deploy to GitHub Pages
-
+name: Update rates and deploy GitHub Pages
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
-
+  schedule:
+    - cron: '37 */2 * * *'
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
-  group: "pages"
+  group: pages-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'production' }}
   cancel-in-progress: false
-
 jobs:
-  # Lint and validate
-  lint:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
-
-      - name: Test calculations
-        run: node --test tests/conversion.test.js
-
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Test calculations and source validation
+        run: npm test
+      - name: Check browser scripts
+        run: |
+          node --check scripts/calculator.js
+          node --check scripts/conversion.js
+          node --check scripts/rate-sources.js
+      - name: Cache OCR language data
+        if: github.event_name != 'pull_request'
+        uses: actions/cache@v4
+        with:
+          path: .cache/ocr
+          key: ocr-eng-rus-v1
+      - name: Collect public exchange rates
+        if: github.event_name != 'pull_request'
+        run: npm run collect-rates
+      - name: Build public files only
+        run: node scripts/build-site.cjs
       - name: Validate HTML
         uses: Cyb3r-Jak3/html5validator-action@v7.2.0
         with:
-          root: ./
-          
-      - name: Check links
-        uses: gaurav-nelson/github-action-markdown-link-check@v1
+          root: _site
+      - name: Setup Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v4
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
         with:
-          use-quiet-mode: 'yes'
-          use-verbose-mode: 'yes'
-          config-file: '.github/markdown-link-check-config.json'
-        continue-on-error: true
-
-  # Build and deploy
+          path: _site
   deploy:
     if: github.event_name != 'pull_request'
-    needs: lint
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Deployment Status
-        if: success()
-        run: echo "✅ Deployed successfully to ${{ steps.deployment.outputs.page_url }}"
