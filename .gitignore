@@ -24,7 +24,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 yarn.lock
 
 # Logs
@@ -56,3 +55,6 @@ temp/
 # Backup Files
 *.bak
 *.backup
+.cache/
+_site/
+release-files.json

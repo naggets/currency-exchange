@@ -1,3 +1,10 @@
+# Version 1.3.0 — 2026-10-04
+
+- Redesigned the interface around one currency route, dropdowns, currency swaps and movement arrows.
+- Consolidated transfer presets and collapsed detailed pair settings.
+- Separated local ATM cash from the card/fee currency, adding a minimum fee and a reverse card-budget calculation.
+- Added an explicit withdrawal breakdown and total-cost equivalents across the chain; preserved OIF without applying it twice.
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -6,6 +13,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.0] - 2026-10-04
+
+### Added
+- Public automatic Visa, Unired, MTS ELQR and Bakai rates, with publisher and timestamps
+- Per-pair commissions, inverse quotes and Visa-style OIF calculation
+- Automatic ELQR/Bakai and Unired presets with manual exchange-office EUR rate
+- Scheduled collection and GitHub Pages deployment every two hours
+- Stale-source and OCR validation, with manual input retained
+
+## [1.1.0] - 2026-10-02
+
+### Added
+- Editable currency names and chains of 2–10 currencies
+- RUB → KGS → RSD → EUR preset with manual rates
+- ATM surcharge and withdrawal budget calculations
+- Saved settings migration and calculation tests
+
+### Fixed
+- Preserve the last edited amount when rates change
+- Reject invalid rates and amounts instead of displaying misleading results
 
 ## [1.0.2] - 2025-10-16
 

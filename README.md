@@ -1,160 +1,51 @@
-# 💱 Currency Calculator
+# Currency Calculator
 
-Multi-currency converter with custom exchange rates support. Perfect for tracking conversions through multiple currencies with bank-specific rates.
+[Open the calculator](https://naggets.github.io/currency-exchange/)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.2-blue)](https://github.com/naggets/currency-exchange/releases)
+Editable chains of 2–10 currencies, automatic quotes, per-pair fees and an additional ATM surcharge. Settings stay in the current browser.
 
-## ✨ Features
+## Use
 
-- 🔄 **Bidirectional Conversion** - Enter amount in any currency, all others calculate automatically
-- 💾 **Auto-Save** - Exchange rates saved locally in your browser
-- 📱 **Mobile Friendly** - Fully responsive design, works great on phones
-- 🌐 **Visa Integration** - Quick link to check official Visa exchange rates
-- 🎨 **Clean UI** - Modern, intuitive interface
-- ⚡ **Fast & Lightweight** - Pure HTML/CSS/JS, no frameworks needed
-- ♿ **Accessible** - WCAG compliant, keyboard navigation support
+Choose a transfer route (ELQR + Bakai or Unired), then choose the spending currency from its dropdown. Existing saved chains are preserved. Currency arrows move nodes, and choosing another currency already in the chain swaps the two nodes. Quotes are kept only for unchanged pairs; new pairs get a supported source or require a manual quote. Changing the spending currency of an existing USD Visa pair preserves its fee settings. Individual quote settings and source details are expandable. Add EUR if you need a further cash exchange and enter its exchange-office quote manually.
 
-## 🚀 Demo
+Automatic sources support these directions:
 
-Try it live: [https://naggets.github.io/currency-exchange](https://naggets.github.io/currency-exchange)
+| Source | Pair | Data publisher |
+| --- | --- | --- |
+| MTS ELQR | RUB → KGS | Public morning Curso table, row Multitransfer (Elkart); matched against the user's MTS quote on 2026-10-04 |
+| Unired | RUB → USD | Public morning Curso table, plain Unired row |
+| Bakai | KGS → USD / USD → KGS | Official noncash sell / buy quotes |
+| Visa | USD budget → selected currency spending | Kylc copy of Visa's spending → USD billing rate |
 
-## 🎯 Use Case
+For Japan, select **JPY** in the currency dropdown and select Visa for the USD → JPY pair. Currency dropdowns include collected codes and Russian names. The collector follows all currency links published by Kylc for USD cards, with two concurrent requests. Each currency is checked independently; missing or stale quotes require manual input. The official comparison below covers RSD; other currencies are published mirror values without an individual official comparison.
 
-Perfect for scenarios where you need to track currency conversions through multiple steps:
-- RUB → KGS → USD → JPY
-- Custom bank exchange rates
-- Multi-hop currency transfers
-- International payment calculations
+Visa was compared with its official calculator for 2026-10-01, 2026-10-02 and 2026-10-04. Values matched at Kylc's published precision of 8 decimal places; this is not a guarantee of future data. Curso is a third-party morning snapshot, not an intraday quote from the transfer service. Telegram login is not used. Each pair shows its publisher, publication/quote date and collection time, with a link to the source.
 
-## 🛠️ Tech Stack
+A normal card payment and the inverse budget calculation use the same spending/billing quote. This does not describe a new payment in the opposite direction. Bank and ATM settlement conditions may affect the final debit.
 
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling with CSS Grid/Flexbox
-- **Vanilla JavaScript** - No dependencies
-- **LocalStorage API** - Client-side data persistence
+## Fees
 
-## 📱 Add to Home Screen (iOS/Android)
+For a fee added to the debit, the affordable converted amount is `budget × base rate / (1 + fee / 100)`. The Visa preset uses OIF 1.5%. Other modes are withholding and an already fee-inclusive quote; the latter avoids charging twice. ATM fees are calculated separately after the pair fees. Choose the local cash currency and the card/fee currency independently. Enter the desired cash amount, or switch to a total card budget. The withdrawal fee is `max(card amount × percent / 100, minimum)` in the selected card currency, with no intermediate rounding. Example: 65,000 RSD at Visa 104.2799625 RSD/USD, OIF 1.5%, withdrawal 1% with a minimum 3 USD results in about 632.67 USD conversion + 6.33 USD fee = 639.00 USD debit. The breakdown lists cash, conversion, fee, total debit and equivalents across the chain. A missing quote outside the cash/card path does not block the withdrawal calculation; that equivalent is marked unavailable.
 
-### iOS (Safari)
-1. Open the app in Safari
-2. Tap the Share button (square with arrow)
-3. Scroll down and tap "Add to Home Screen"
-4. Tap "Add"
+## Updates and failures
 
-### Android (Chrome)
-1. Open the app in Chrome
-2. Tap the menu (three dots)
-3. Tap "Add to Home screen"
-4. Tap "Add"
+GitHub Actions collects and deploys rates every two hours, at minute 37 UTC, and on pushes to main. GitHub scheduling may be delayed. Scheduled workflows in public repositories may be disabled after 60 days without repository activity; they can be re-enabled in Actions.
 
-## 🔧 Usage
+The refresh button downloads the last published JSON, rather than directly querying upstream services. Collection timestamps older than 6 hours are rejected; Curso publications older than 36 hours and Visa mirror dates older than 3 days are rejected. Fetching an old publication never changes its publication time. Failed sources are marked unavailable while successful sources can still publish. If every source fails, deployment stops and the previous site remains until its quotes expire.
 
-### Setting Exchange Rates
+OCR checks expected image layout, currency headings, publication dates and recognition confidence. A changed layout or ambiguous extraction fails closed. Public aggregation can still contain errors; check the original transfer app before sending money.
 
-1. **RUB → KGS**: Enter the bank's **sell rate** for RUB
-2. **KGS → USD**: Enter the bank's **buy rate** for USD
-3. **USD → JPY**: Enter the conversion rate (check Visa for accuracy)
+## Development
 
-Rates are automatically saved in your browser.
+Node.js 24:
 
-### Converting Currencies
-
-Simply enter an amount in any currency field - all other currencies will calculate automatically!
-
-**Example:**
-- Enter `1000` in JPY field
-- Instantly see equivalent in RUB, KGS, and USD
-
-### Checking Visa Rates
-
-Click the "🌐 Visa" button next to USD → JPY field to open Visa's official exchange rate calculator.
-
-## 📁 Project Structure
-
-```
-currency-calculator/
-├── index.html              # Main HTML file
-├── styles/
-│   └── main.css           # Stylesheet
-├── scripts/
-│   └── calculator.js      # Application logic
-├── manifest.json          # PWA manifest
-├── .gitignore            # Git ignore rules
-├── README.md             # This file
-└── LICENSE               # MIT License
+```sh
+npm ci
+npm test
+npm run collect-rates
+node scripts/build-site.cjs
 ```
 
-### Development Guidelines
+Only `_site` is uploaded to Pages. Collector code, dependencies and language models are not included in the public site artifact. `data/rates.json` committed to the repository is an initial snapshot; scheduled deployments generate their own JSON without committing it.
 
-1. **Code Style**: Follow existing code style
-2. **Commits**: Use semantic commit messages
-   - `feat:` new features
-   - `fix:` bug fixes
-   - `docs:` documentation changes
-   - `style:` formatting, missing semicolons, etc.
-   - `refactor:` code restructuring
-   - `test:` adding tests
-   - `chore:` maintenance tasks
-
-### Steps to Contribute
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'feat: add some amazing feature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 🐛 Bug Reports
-
-Found a bug? Please open an issue with:
-- Clear description of the problem
-- Steps to reproduce
-- Expected vs actual behavior
-- Browser and OS information
-- Screenshots if applicable
-
-## 💡 Feature Requests
-
-Have an idea? Open an issue with:
-- Clear description of the feature
-- Use case explanation
-- Any relevant examples or mockups
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
-
-## 🙏 Acknowledgments
-
-- Exchange rates powered by user input
-- Visa rate reference: [Visa Exchange Rate Calculator](https://www.visa.com.sg/support/consumer/travel-support/exchange-rate-calculator.html)
-- Icons: Unicode emoji
-
-## 📊 Changelog
-
-### v1.0.0 (2025-10-15)
-- Initial release
-- Support for RUB, KGS, USD, JPY
-- Bidirectional conversion
-- LocalStorage persistence
-- Mobile-responsive design
-- Visa rate integration
-
-## 🔮 Roadmap
-
-- [ ] Add more currencies
-- [ ] Historical rate tracking
-- [ ] Export conversion history
-- [ ] Dark mode
-- [ ] Multi-language support
-- [ ] PWA offline support
-- [ ] Rate change notifications
-
-## 📞 Contact
-
-Project Link: [https://github.com/naggets/currency-exchange](https://github.com/naggets/currency-exchange)
-
----
-
-Made with ❤️ for easier currency conversions
+Sources: [Visa original](https://www.visa.co.uk/support/consumer/travel-support/exchange-rate-calculator.html), [Kylc](https://www.kylc.com/huilv/i-visa/usd/rsd.html), [Bakai](https://bakai.kg/ru/), [Curso public channel](https://t.me/s/CursoUz).
