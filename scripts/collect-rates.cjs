@@ -84,22 +84,37 @@ async function collectCurso(html,fetchedAt){
     const text=data.text.trim(); rows.push({text,confidence:data.confidence});
     const unired=pair==='USD'&&text.match(/^Unired\s+(\d+\.\d{2})\s/);
     const multi=pair==='KGS'&&text.match(/^Мультитрансфер\s*\(Элкарт\)\s+(\d+\.\d{2})\s/);
-    if(unired&&data.confidence>=75)candidates.unired.push(Number(unired[1]));
+    if(unired){
+     if(data.confidence>=75)candidates.unired.push(Number(unired[1]));
+     else{
+      // The trailing currency glyph can lower line confidence. Validate the
+      // plain service name and numeric column independently, keeping thresholds.
+      const parts=[];
+      for(const crop of [{left:20,width:290},{left:315,width:50}]){
+       const part=await sharp(images[i]).extract({...crop,top:250+row*37,height:25}).resize({width:crop.width*4}).extend({top:20,bottom:20,left:20,right:20,background:'white'}).png().toBuffer();
+       const {data:recognized}=await worker.recognize(part);parts.push(recognized);
+      }
+      if(parts.every(part=>part.confidence>=75)&&parts[0].text.trim()==='Unired'&&/^\d+\.\d{2}$/.test(parts[1].text.trim())&&Number(parts[1].text.trim())===Number(unired[1]))candidates.unired.push(Number(unired[1]));
+     }
+    }
     if(multi&&data.confidence>=80)candidates.multi.push(Number(multi[1]));
    }
    evidence.push({image:i+1,pair,header:heading.text.trim(),rows});
   }
  }finally{await worker.terminate();}
 
- const quotes=[];
+ return cursoQuotes(album,candidates,fetchedAt);
+}
+function cursoQuotes(album,candidates,fetchedAt){
+ const quotes=[],failed={};
  for(const source of ['unired','multi']){
   const values=candidates[source];
-  if(!values.length||!values.every(v=>v===values[0]&&v>0))throw Error(`Missing or conflicting ${source} OCR values`);
+  if(!values.length||!values.every(v=>Number.isFinite(v)&&v===values[0]&&v>0)){failed[source]=`Missing or conflicting ${source} OCR values`;continue;}
   quotes.push({source,from:'RUB',to:source==='unired'?'USD':'KGS',rate:source==='unired'?1/values[0]:values[0],available:true,fetchedAt,
    sourceUpdatedAt:album.sourceUpdatedAt,sourceUrl:`https://t.me/s/CursoUz/${album.postId}`,publisher:'Curso (публичная утренняя таблица)',
    note:source==='unired'?`Строка Unired: ${values[0]} RUB за USD. Не строка Unired (UniversalBank).`:'Строка Мультитрансфер (Элкарт). Совпадение с МТС ELQR подтверждено пользователем 04.10.2026: 1,03 KGS/RUB, без комиссии.'});
  }
- return quotes;
+ return {quotes,failed};
 }
 async function collect(){
  const feed={schemaVersion:1,generatedAt:new Date().toISOString(),providers:{},quotes:[]};
@@ -111,7 +126,8 @@ async function collect(){
  for(let i=0;i<outcomes.length;i++){
   const sources=[['visa'],['bakai'],['unired','multi']][i];const result=outcomes[i];
   if(result.status==='fulfilled'){
-   feed.quotes.push(...(i===0?result.value.quotes:result.value));for(const source of sources)feed.providers[source]={status:'ok',message:source==='visa'?`Visa через Kylc: ${result.value.quotes.length} валют (8 знаков)`:source==='bakai'?'Официальный Бакай':'Публичная утренняя таблица Curso'};
+   feed.quotes.push(...(i===1?result.value:result.value.quotes));
+   for(const source of sources)feed.providers[source]=i===2&&result.value.failed[source]?{status:'unavailable',message:result.value.failed[source]}:{status:'ok',message:source==='visa'?`Visa через Kylc: ${result.value.quotes.length} валют (8 знаков)`:source==='bakai'?'Официальный Бакай':'Публичная утренняя таблица Curso'};
    if(i===0)feed.providers.visa.unavailableCurrencies=result.value.failed;
   }else for(const source of sources)feed.providers[source]={status:'unavailable',message:result.reason.message};
  }
@@ -121,4 +137,4 @@ async function collect(){
  if(feed.quotes.length===0)process.exitCode=1;
 }
 if(require.main===module)fs.mkdir(path.join(__dirname,'../.cache/ocr'),{recursive:true}).then(()=>collect()).catch(e=>{console.error(e.message);process.exitCode=1;});
-module.exports={parseVisa,latestAlbum,parseBakai};
+module.exports={parseVisa,latestAlbum,parseBakai,cursoQuotes};

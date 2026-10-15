@@ -1,6 +1,6 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {parseVisa,latestAlbum}=require('../scripts/collect-rates.cjs');
+const {parseVisa,latestAlbum,cursoQuotes}=require('../scripts/collect-rates.cjs');
 const {lookup}=require('../scripts/rate-sources');
 const visa='<title>VISA美元卡的塞尔维亚第纳尔汇率</title><a>USD - 美元卡</a><a>RSD - 塞尔维亚第纳尔</a><b class="card-brand-current-rate">0.00958957</b><span class="card-brand-rate-date">(10月04日)</span>';
 test('Visa mirror validates the pair, date and original spending direction',()=>{
@@ -33,6 +33,16 @@ test('Public album refuses old publications and changed image layout',()=>{
 });
 
 const cursoPost=(id,date,count=9)=>`data-post="CursoUz/${id}" `+Array.from({length:count},(_,i)=>`style="background-image:url('https://cdn4.telesco.pe/file/${id}-${i}.jpg')"`).join(' ')+` datetime="${date}"`;
+test('Curso publishes ELQR independently when Unired is missing or conflicting',()=>{
+ const album={postId:'7177',sourceUpdatedAt:'2026-10-15T05:03:03Z'};
+ for(const unired of [[],[86.91,85.91],[NaN],[Infinity]]){
+  const result=cursoQuotes(album,{unired,multi:[1.02]},'2026-10-15T10:00:00Z');
+  assert.equal(result.quotes.length,1);assert.equal(result.quotes[0].source,'multi');
+  assert.equal(result.quotes[0].rate,1.02);assert.ok(result.failed.unired);assert.equal(result.failed.multi,undefined);
+ }
+ const result=cursoQuotes(album,{unired:[86.91,86.91],multi:[]},'2026-10-15T10:00:00Z');
+ assert.equal(result.quotes[0].rate,1/86.91);assert.ok(result.failed.multi);
+});
 test('Curso finds the table before text and image advertisements without mixing posts',()=>{
  const html=cursoPost(10,'2026-10-04T05:00:00Z')+cursoPost(11,'2026-10-04T08:00:00Z',1)+cursoPost(12,'2026-10-04T09:00:00Z',0);
  const album=latestAlbum(html,'2026-10-04T10:00:00Z');
